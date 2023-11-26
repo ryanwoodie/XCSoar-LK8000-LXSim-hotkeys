@@ -9,6 +9,8 @@ Here are some of the things you can do in XCsoar without leaving Condor or VR:
 - Go to next or prev waypoint
 - Change MC setting
 
+Requires: AutoHotKey v1.1
+
 To use this:
 1. Copy the custom_keys.xci file to your XCSoar directory. In XCSoar go to config > system > language/input > events and choose this xci file.
 2. Run the AutoHotKey script and assign keys/buttons or joystick axes, d-pad or HAT/POV to the various XCsoar or LK8000 commands.
