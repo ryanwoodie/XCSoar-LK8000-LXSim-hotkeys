@@ -15,7 +15,7 @@ jobs:
     
     - name: Compile AHK Script
       run: |
-        & 'C:\Program Files\AutoHotkey\AutoHotkey.exe' '/in' 'dynamic XCS hotkey.ahk' '/out' 'dynamic_XCS_hotkey.exe'
+        & 'C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe' '/in' 'dynamic XCS hotkey.ahk' '/out' 'dynamic_XCS_hotkey.exe'
            
     - name: List files in directory
       run: |
