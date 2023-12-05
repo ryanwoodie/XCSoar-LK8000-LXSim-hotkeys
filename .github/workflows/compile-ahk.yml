@@ -12,11 +12,11 @@ jobs:
     - name: Set up AutoHotkey
       run: |
         choco install autohotkey
-
+    
     - name: Compile AHK Script
       run: |
-        "C:\Program Files\AutoHotkey\AutoHotkey.exe" /in "dynamic XCS hotkey.ahk" /out "dynamic_XCS_hotkey.exe"
-      
+        & 'C:\Program Files\AutoHotkey\AutoHotkey.exe' '/in' 'dynamic XCS hotkey.ahk' '/out' 'dynamic_XCS_hotkey.exe'
+           
     - name: Upload Compiled EXE
       uses: actions/upload-artifact@v2
       with:
