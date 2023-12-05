@@ -1,0 +1,24 @@
+name: Compile AHK Script
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up AutoHotkey
+      run: |
+        choco install autohotkey
+
+    - name: Compile AHK Script
+      run: |
+        "C:\ProgramData\choco\bin\AutoHotkey.exe" /in "dynamic XCS hotkey.ahk" /out "dynamic_XCS_LK_hotkey.exe"
+
+    - name: Upload Compiled EXE
+      uses: actions/upload-artifact@v2
+      with:
+        name: Compiled-EXE
+        path: dynamic_XCS_hotkey.exe
