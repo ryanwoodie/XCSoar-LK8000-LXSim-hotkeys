@@ -13,14 +13,10 @@ jobs:
       run: |
         choco install autohotkey
 
-    - name: Find AutoHotkey.exe
-      run: |
-        Get-ChildItem C:\ -Recurse -Filter AutoHotkey.exe
-
     - name: Compile AHK Script
       run: |
-        AutoHotkey.exe /in "dynamic XCS hotkey.ahk" /out "dynamic_XCS_hotkey.exe"
-
+        "C:\Program Files\AutoHotkey\AutoHotkey.exe" /in "dynamic XCS hotkey.ahk" /out "dynamic_XCS_hotkey.exe"
+      
     - name: Upload Compiled EXE
       uses: actions/upload-artifact@v2
       with:
