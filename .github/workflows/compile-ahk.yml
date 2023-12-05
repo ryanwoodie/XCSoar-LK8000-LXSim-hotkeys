@@ -17,6 +17,10 @@ jobs:
       run: |
         & 'C:\Program Files\AutoHotkey\AutoHotkey.exe' '/in' 'dynamic XCS hotkey.ahk' '/out' 'dynamic_XCS_hotkey.exe'
            
+    - name: List files in directory
+      run: |
+        Get-ChildItem
+  
     - name: Upload Compiled EXE
       uses: actions/upload-artifact@v2
       with:
