@@ -47,3 +47,4 @@ jobs:
         asset_path: ./dynamic_XCS_hotkey.exe
         asset_name: dynamic_XCS_hotkey.exe
         asset_content_type: application/octet-stream
+        
