@@ -3,6 +3,8 @@ Map joystick controls/buttons, or keys, to control XCSoar or LK8000. Great for V
 
 This script controls XCSoar/LK8000 without losing focus on your active app (ie. Condor).
 
+![Screen Image](screen.png)
+
 Here are some of the things you can do in XCsoar without leaving Condor or VR:
 - Go to the F1 Quick Menu, access menus and adjust settings (eg: add ballast in "Flight Setup")
 - Go to Pan Mode, look around the map and zoom in/out to plan out your route
