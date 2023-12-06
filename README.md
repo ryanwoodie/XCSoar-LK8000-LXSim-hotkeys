@@ -5,7 +5,7 @@ This script controls XCSoar/LK8000 without losing focus on your active app (ie. 
 
 ![Screen Image](screen.png)
 
-Here are some of the things you can do in XCsoar without leaving Condor or VR:
+Besides switching pages or zooming in/out, here are some of the other things you can do in XCsoar without leaving Condor or VR:
 - Go to the F1 Quick Menu, access menus and adjust settings (eg: add ballast in "Flight Setup")
 - Go to Pan Mode, look around the map and zoom in/out to plan out your route
 - Go to next or prev waypoint
