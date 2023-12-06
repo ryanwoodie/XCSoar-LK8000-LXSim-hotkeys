@@ -33,8 +33,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This token is provided by Actions, you do not need to create your own token
       with:
-        tag_name: v1
-        release_name: Release ${{ github.run_attempt}}
+        tag_name: exe
+        release_name: v1.${{ github.run_attempt}}
         draft: false
         prerelease: false
 
