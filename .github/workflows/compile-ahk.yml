@@ -1,6 +1,10 @@
 name: Compile AHK Script
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**.ahk'  # This will trigger the workflow only when .ahk files are changed
+
 
 jobs:
   build:
