@@ -17,6 +17,7 @@ global joystickBindings := {}
 global commandMappings := {"Enter": "{Enter}", "Esc": "{Escape}", "F1_Quick_Menu": "{F1}", "Up": "{Up}", "Down": "{Down}", "Left": "{Left}", "Right": "{Right}", "Zoom_Out": "{F13}", "Zoom_In": "{F14}", "Pan_Mode": "{F15}", "Auto_MC": "{F16}", "MC_Up": "{F17}", "MC_Down": "{F18}", "Task_Next": "{F19}", "Task_Previous": "{F20}", "Extra_1": "{F21}", "Extra_2": "{F22}", "Extra_3": "{F23}", "Extra_4": "{F24}"}
 global hotkeyCommands := {}
 global JoystickNumber = 0
+global UserInput := ""
 
 Loop 16  ; Query each joystick number to find out which ones exist.
 	{
@@ -98,10 +99,10 @@ SendToXCS(keys) {
 	WinGet, WinID, ID, LK8000
   ControlGetFocus,CursorPosition, LK8000
   if not CursorPosition
-  ControlSend, ahk_parent, %k%, ahk_id %WinID%
+  ControlSend, ahk_parent, %keys%, ahk_id %WinID%
   else
   {
-	ControlSend, %CursorPosition%, %k%, ahk_id %WinID%
+	ControlSend, %CursorPosition%, %keys%, ahk_id %WinID%
 }
 
     return
@@ -112,6 +113,13 @@ config:
     
     Gui, New
     guiYPosition := 10
+    Gui, Add, Text, x10 y%guiYPosition% w400, Press and hold your key/button until it is detected. If the key (eg. F1) needs a modifier button (eg. Fn), hold the modifier before pressing the assign button below
+    guiYPosition += 40  ; Adjust the position for the next element
+    Gui,Font,bold
+    Gui, Add, Text, x10 y%guiYPosition%, XCsoar Function:
+     Gui, Add, Text, x325 y%guiYPosition%, Current Key/Value:  ; Heading for the currentKeyValue column
+    guiYPosition += 20  ; Adjust the position for the next set of elements
+    Gui,Font,normal
 for index, commandName in commandList {
     IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
     ;MsgBox, cmd: %commandName%
@@ -137,16 +145,30 @@ AssignInput() {
     UserInput := ""
     Loop
     {
-        ; Poll every key and mouse button
-        Loop, 161
-        {
-            keyName := Format("sc{:02X}", A_Index)
-            if GetKeyState(keyName, "P") {
-                UserInput := GetKeyName(keyName)
-                GuiControl,, %A_GuiControl%, Assign Key/Button  ; Reset the button text back to "Assign"
-                break 2  ; Exit both loops
-            }
+
+    Loop, 512
+    {
+        keyName := Format("sc{:x}", A_Index)  ; Format as a hex string with leading zero
+        ;Tooltip %keyName%
+         ;sleep 10
+         Hotkey, %keyName%, KeyAssign, On
+         ;Hotkey, %keyName%, Off
         }
+
+        sleep 200
+        
+        Loop, 512
+            {
+                keyName := Format("sc{:x}", A_Index)  ; Format as a hex string with leading zero
+                ;Tooltip %keyName%
+                ;sleep 10
+                ;Hotkey, %keyName%, KeyAssign, On
+                Hotkey, %keyName%, Off
+                }
+
+
+        if (UserInput != "")
+        Break 1
 
         ; Check each joystick button for multiple joysticks
         Loop, %JoystickNumber%  ; Assuming 2 joysticks, increase if you have more
@@ -183,6 +205,14 @@ AssignInput() {
     }
 return
 }
+
+KeyAssign:
+    scanCode := A_ThisHotkey
+    keyName := GetKeyName(scanCode)  ; Get the key name from the scan code
+    UserInput := keyName
+    ;global UserInput := scanCode
+    ;Tooltip, %scanCode%,%UserInput%
+return
 
 AssignAxis() {
     static commandName
