@@ -20,4 +20,4 @@ To use this:
 There are extra_1 to extra_4 hotkeys if you want to add more commands into your XCI file (assign these to F21 to F24 keys in your XCI file)
 
 # Hard coded version
-If know the AHK names for the keys/buttons you want to use, you can also modify the hard-coded-version.ahk script and use that instead. See AHK documention for more info.
+If know the AHK names for the keys/buttons you want to use, you can also modify the hard-coded-version.ahk script and use that instead.
