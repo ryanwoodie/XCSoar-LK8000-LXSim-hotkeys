@@ -11,10 +11,19 @@ DetectHiddenWindows, On
 #SingleInstance force
 WinSet, Style, -0xC00000, XCSoar
 
-; Joystick buttons routed to XCSoar
 Enter::SendToXCS("{Enter}")
 Esc::SendToXCS("{Escape}")
 Del::SendToXCS("{F1}") ; XCsoar mega menu
+
+;example of needing two buttons pressed together.
+
+Joy1::
+Joy2::
+    if GetKeyState("Joy1", "P") and GetKeyState("Joy2", "P") {
+        SendToXCS("{Up})
+    }
+return
+
 
 ; Main top-level cursor behaviors
 Up::SendToXCS("{Up}")
