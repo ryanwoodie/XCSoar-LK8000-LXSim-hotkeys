@@ -3,7 +3,7 @@ name: Compile AHK Script
 on:
   push:
     paths:
-      - '**.ahk'  # This will trigger the workflow only when .ahk files are changed
+      - '*hotkey.ahk'  # This will trigger the workflow only when .ahk files are changed
 
 
 jobs:
