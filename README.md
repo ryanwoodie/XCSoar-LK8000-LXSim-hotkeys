@@ -6,11 +6,12 @@ This script controls XCSoar/LK8000 without losing focus (except to toggle mouse 
 ![Screen Image](screen.png)
 
 Besides switching pages or zooming in/out, here are some of the other things you can do in XCsoar / LK8000 without leaving Condor or VR:
-- Go to the F1 Quick Menu, access menus and adjust settings (eg: add ballast in "Flight Setup")
+- Go to the F1 Menu, access menus and adjust settings (eg: add ballast in "Flight Setup")
 - Go to Pan Mode, look around the map and zoom in/out to plan out your route
 - Go to next or prev waypoint
 - Change MC setting
 - Toggle between XCSoar/LK8000 and Condor as the active application, so you can use your mouse as needed.
+- In LK8000, navigate between bottom bar fields and data pages, use multi-target, custom menu buttons,etc.
 
 
 To use this:
