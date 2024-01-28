@@ -12,9 +12,11 @@ DetectHiddenWindows, On
 
 ; Global variables and mappings
 global iniFilePath := A_ScriptDir . "\settings.ini"
-global commandList := ["Enter", "Esc", "F1_Quick_Menu", "Up", "Down", "Left", "Right", "Zoom_Out", "Zoom_In", "Pan_Mode", "Auto_MC", "MC_Up", "MC_Down", "Task_Next", "Task_Previous", "Extra_1", "Extra_2", "Extra_3", "Extra_4"]
+global commandList := ["Enter", "Esc", "F1_Quick_Menu", "Up", "Down", "Left", "Right", "Zoom_Out", "Zoom_In", "Pan_Mode", "Auto_MC", "MC_Up", "MC_Down", "Task_Next", "Task_Previous", "Toggle_Mouse", "Extra_LK_Bottom_Bar_L", "Extra_LK_Bottom_Bar_R", "Extra_LK_Prev_Page", "Extra_LK_Next_Page", "Extra_LK_Top_Left", "Extra_LK_Top_Right", "Extra_LK_custom_menu_q", "Extra_LK_custom_menu_w", "Extra_LK_custom_menu_e", "Extra_LK_custom_menu_r", "Extra_LK_custom_menu_t", "Extra_LK_custom_menu_y", "Extra_LK_custom_menu_u", "Extra_LK_custom_menu_i", "Extra_LK_custom_menu_o", "Extra_LK_custom_menu_p"]
+
+global commandMappings := {"Enter": "{Enter}", "Esc": "{Escape}", "F1_Quick_Menu": "{F1}", "Up": "{Up}", "Down": "{Down}", "Left": "{Left}", "Right": "{Right}", "Zoom_Out": "{F3}", "Zoom_In": "{F4}", "Pan_Mode": "{F2}", "Auto_MC": "{F6}", "MC_Up": "{F7}", "MC_Down": "{F8}", "Task_Next": "{F9}", "Task_Previous": "{F10}", "Toggle_Mouse": "{F13}", "Extra_LK_Bottom_Bar_L": "{a}", "Extra_LK_Bottom_Bar_R": "{s}", "Extra_LK_Prev_Page": "{d}", "Extra_LK_Next_Page": "{f}", "Extra_LK_Top_Left": "{g}", "Extra_LK_Top_Right": "{h}", "Extra_LK_custom_menu_q": "{q}", "Extra_LK_custom_menu_w": "{w}", "Extra_LK_custom_menu_e": "{e}", "Extra_LK_custom_menu_r": "{r}", "Extra_LK_custom_menu_t": "{t}", "Extra_LK_custom_menu_y": "{y}", "Extra_LK_custom_menu_u": "{u}", "Extra_LK_custom_menu_i": "{i}", "Extra_LK_custom_menu_o": "{o}", "Extra_LK_custom_menu_p": "{p}"}
+
 global joystickBindings := {}
-global commandMappings := {"Enter": "{Enter}", "Esc": "{Escape}", "F1_Quick_Menu": "{F1}", "Up": "{Up}", "Down": "{Down}", "Left": "{Left}", "Right": "{Right}", "Zoom_Out": "{F13}", "Zoom_In": "{F14}", "Pan_Mode": "{F15}", "Auto_MC": "{F16}", "MC_Up": "{F17}", "MC_Down": "{F18}", "Task_Next": "{F19}", "Task_Previous": "{F20}", "Extra_1": "{F21}", "Extra_2": "{F22}", "Extra_3": "{F23}", "Extra_4": "{F24}"}
 global hotkeyCommands := {}
 global JoystickNumber = 0
 global UserInput := ""
@@ -87,7 +89,45 @@ return
 
 ; Handles piping individual keys to XCSoar
 SendToXCS(keys) {
-    WinGet, WinID, ID, XCSoar
+    static toggleState := 1  ; Static variable to maintain state between function calls
+
+    if (keys = "{F13}") {
+        ; Check which program is currently not active and toggle to it
+        toggleState := !toggleState  ; Toggle the state between 0 and 1
+
+        if (toggleState = 1) {
+            ; Attempt to activate CONDOR.EXE
+            if WinExist("ahk_exe CONDOR.EXE") {
+                WinActivate
+            } else {
+                ;toggleState := !toggleState  ; Revert toggleState if CONDOR.EXE does not exist
+            }
+        } else {
+        If WinExist("ahk_exe XCsoar.exe") {
+            WinActivate  ; Activates the found window
+            sleep 200
+            CoordMode, Mouse, Screen
+            WinGetPos, X, Y, W, H, LK8000
+            Horz := X + (W / 2)
+            Vert := Y + (H / 2)
+            DllCall("SetCursorPos", "int", Horz, "int", Vert)  ; Move cursor to the middle of the window
+            return
+        } else if WinExist("ahk_exe LK8000-PC.exe") {
+            WinActivate  ; Activates the found window
+            sleep 200
+            CoordMode, Mouse, Screen
+            WinGetPos, X, Y, W, H, LK8000
+            Horz := X + (W / 2)
+            Vert := Y + (H / 2)
+            DllCall("SetCursorPos", "int", Horz, "int", Vert)  ; Move cursor to the middle of the window
+            return
+        }
+    }
+    }
+
+
+
+    WinGet, WinID, ID, ahk_exe XCSoar.exe
     ControlGetFocus, CursorPosition, XCSoar
     if (!CursorPosition) {
         ControlSend, ahk_parent, %keys%, ahk_id %WinID%
@@ -96,7 +136,7 @@ SendToXCS(keys) {
     }
    
    
-	WinGet, WinID, ID, LK8000
+	WinGet, WinID, ID, ahk_exe LK8000-PC.exe
   ControlGetFocus,CursorPosition, LK8000
   if not CursorPosition
   ControlSend, ahk_parent, %keys%, ahk_id %WinID%
@@ -112,29 +152,70 @@ config:
 {
     
     Gui, New
-    guiYPosition := 10
+    guiYPosition := 25
     Gui, Add, Text, x10 y%guiYPosition% w400, Press and hold your key/button until it is detected. If the key (eg. F1) needs a modifier button (eg. Fn), hold the modifier before pressing the assign button below
     guiYPosition += 40  ; Adjust the position for the next element
+
+    Gui, Add, Tab, x2 y2 h600 w800, Regular Keys|Extra Keys
+    Gui, Tab, Regular Keys
     Gui,Font,bold
-    Gui, Add, Text, x10 y%guiYPosition%, XCsoar Function:
+    Gui, Add, Text, x10 y%guiYPosition%, Function:
      Gui, Add, Text, x325 y%guiYPosition%, Current Key/Value:  ; Heading for the currentKeyValue column
     guiYPosition += 20  ; Adjust the position for the next set of elements
     Gui,Font,normal
+
 for index, commandName in commandList {
+     if (!StrContains(commandName, "Extra_")) { 
     IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
     ;MsgBox, cmd: %commandName%
-    Gui, Add, Text, x10 y%guiYPosition% w100, %commandName%
+    Gui, Add, Text, x10 y%guiYPosition% w120, %commandName%
     Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput v%commandName%_xyz, Assign Key/Button
     ;Gui, Add, Edit, v%GuiControlVar% hidden, %commandName%
     Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis v%commandName%_abc, Assign Axis/HAT
     Gui, Add, Text, x+5 y%guiYPosition% w100, %currentKeyValue%
     guiYPosition += 30
     commandName := ""
+     }
 }
+
+  Gui, Tab, Extra Keys
+    guiYPosition := 65  ; Reset position for Extra Keys
+
+    Gui,Font,bold
+    Gui, Add, Text, x10 y%guiYPosition%, LK8000 functions (or XCsoar extra keys):
+     Gui, Add, Text, x325 y%guiYPosition%, Current Key/Value:  ; Heading for the currentKeyValue column
+    guiYPosition += 20  ; Adjust the position for the next set of elements
+    Gui,Font,normal
+
+for index, commandName in commandList {
+     if (StrContains(commandName, "Extra_")) {  
+    IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
+    ;MsgBox, cmd: %commandName%
+    Gui, Add, Text, x10 y%guiYPosition% w120, %commandName%
+    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput v%commandName%_xyz, Assign Key/Button
+    ;Gui, Add, Edit, v%GuiControlVar% hidden, %commandName%
+    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis v%commandName%_abc, Assign Axis/HAT
+    Gui, Add, Text, x+5 y%guiYPosition% w100, %currentKeyValue%
+    guiYPosition += 30
+    commandName := ""
+     }
+}
+ 
+   Gui, Tab  ; End of tabs
  Gui, Add, Button, x100 y%guiYPosition% w200 gGuiClose, Close and Activate
 
 Gui, Show
 return
+}
+
+
+GuiClose:
+    Gui, Destroy
+    createKeys()
+    return
+
+StrContains(haystack, needle) {
+    return InStr(haystack, needle) ? true : false
 }
 
 ; Subroutine for assigning input
@@ -315,10 +396,4 @@ if (commandName != "") {
         MsgBox, % "Unknown hotkey: " . A_ThisHotkey
     }
 }
-
-
-GuiClose:
-    Gui, Destroy
-    createKeys()
-    return
 

@@ -1,43 +1,43 @@
 mode=default
 type=key
-data=F16
+data=F6
 event=MacCready auto toggle
 
 mode=default
 type=key
-data=F17
+data=F7
 event=MacCready up
 
 mode=default
 type=key
-data=F18
+data=F8
 event=MacCready down
 
 mode=default pan
 type=key
-data=F14
+data=F4
 event=Zoom in
 
 mode=default pan
 type=key
-data=F13
+data=F3
 event=Zoom out
 
 mode=default
 type=key
-data=F15
+data=F2
 event=Pan on
 
 mode=default
 type=key
-data=F19
+data=F9
 event=AdjustWaypoint nextarm
 event=Beep 1
 event=TaskTransition next
 
 mode=default
 type=key
-data=F20
+data=F10
 event=AdjustWaypoint previousarm
 event=Beep 1
 event=StatusMessage Previous Turnpoint
@@ -46,7 +46,7 @@ event=StatusMessage Previous Turnpoint
 # @see https://groups.google.com/g/xcsoar-user/c/z3_zckhSh1E
 mode=pan
 type=key
-data=F21
+data=a  
 event=NearestMapItems
 event=MarkLocation
 event=Mode default
