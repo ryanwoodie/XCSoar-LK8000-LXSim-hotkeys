@@ -1,5 +1,4 @@
-﻿
-#InstallKeybdHook
+﻿#InstallKeybdHook
 #Persistent
 #NoEnv
 #SingleInstance, force

@@ -3,8 +3,7 @@ name: Compile AHK Script
 on:
   push:
     paths:
-      - '*hotkey.ahk'  # This will trigger the workflow only when .ahk files are changed
-
+      - '*hotkey.ahk'  # Trigger the workflow only when .ahk files are changed
 
 jobs:
   build:
@@ -16,15 +15,15 @@ jobs:
     - name: Set up AutoHotkey
       run: |
         choco install autohotkey
-    
+
     - name: Compile AHK Script
       run: |
         & 'C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe' '/in' 'dynamic XCS hotkey.ahk' '/out' 'dynamic_XCS_hotkey.exe'
-           
+
     - name: List files in directory
       run: |
         Get-ChildItem
-  
+
     - name: Upload Compiled EXE
       uses: actions/upload-artifact@v2
       with:
@@ -35,19 +34,43 @@ jobs:
       id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This token is provided by Actions, you do not need to create your own token
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v1.${{ github.run_id}}
         release_name: v1.${{ github.run_id}}
         draft: false
         prerelease: false
 
+    # Upload the DEFAULT_MENU.TXT file as a release asset
+    - name: Upload DEFAULT_MENU.TXT
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./DEFAULT_MENU.TXT
+        asset_name: DEFAULT_MENU.TXT
+        asset_content_type: text/plain
+
+    # Upload the custom_keys.xci file as a release asset
+    - name: Upload custom_keys.xci
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./custom_keys.xci
+        asset_name: custom_keys.xci
+        asset_content_type: text/plain
+
+    # Continue uploading other files as needed...
+
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}  # This pulls from the CREATE RELEASE step above, grabs the upload URL
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./dynamic_XCS_hotkey.exe
         asset_name: dynamic_XCS_hotkey.exe
         asset_content_type: application/octet-stream
