@@ -128,7 +128,6 @@ SendToXCS(keys) {
 
    WinGet, WinID, ID, ahk_exe XCSoar.exe
     ControlGetFocus, CursorPosition, ahk_id %WinID%
-    ToolTip, WinID: %WinID%`nFocused Control: %CursorPosition%
     
     if (!CursorPosition) {
         ControlSend, ahk_parent, %keys%, ahk_id %WinID%
