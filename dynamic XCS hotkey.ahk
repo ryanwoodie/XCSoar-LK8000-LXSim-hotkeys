@@ -102,11 +102,11 @@ SendToXCS(keys) {
                 ;toggleState := !toggleState  ; Revert toggleState if CONDOR.EXE does not exist
             }
         } else {
-        If WinExist("ahk_exe XCsoar.exe") {
+        If WinExist("ahk_exe XCSoar.exe") {
             WinActivate  ; Activates the found window
             sleep 200
             CoordMode, Mouse, Screen
-            WinGetPos, X, Y, W, H, LK8000
+            WinGetPos, X, Y, W, H, XCSoar
             Horz := X + (W / 2)
             Vert := Y + (H / 2)
             DllCall("SetCursorPos", "int", Horz, "int", Vert)  ; Move cursor to the middle of the window
@@ -126,17 +126,22 @@ SendToXCS(keys) {
 
 
 
-    WinGet, WinID, ID, ahk_exe XCSoar.exe
-    ControlGetFocus, CursorPosition, XCSoar
+   WinGet, WinID, ID, ahk_exe XCSoar.exe
+    ControlGetFocus, CursorPosition, ahk_id %WinID%
+    ToolTip, WinID: %WinID%`nFocused Control: %CursorPosition%
+    
     if (!CursorPosition) {
         ControlSend, ahk_parent, %keys%, ahk_id %WinID%
+        
     } else {
         ControlSend, %CursorPosition%, %keys%, ahk_id %WinID%
+        
     }
-   
+
+ 
    
 	WinGet, WinID, ID, ahk_exe LK8000-PC.exe
-  ControlGetFocus,CursorPosition, LK8000
+  ControlGetFocus, CursorPosition, ahk_id %WinID%
   if not CursorPosition
   ControlSend, ahk_parent, %keys%, ahk_id %WinID%
   else
