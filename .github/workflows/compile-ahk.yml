@@ -10,7 +10,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4    # Updated from v2
 
     - name: Set up AutoHotkey
       run: |
@@ -25,10 +25,11 @@ jobs:
         Get-ChildItem
 
     - name: Upload Compiled EXE
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4    # Updated from v2
       with:
         name: Compiled-EXE
         path: dynamic_XCS_hotkey.exe
+        retention-days: 90  # Optional: specify how long to keep the artifact
 
     - name: Create Release
       id: create_release
@@ -41,36 +42,26 @@ jobs:
         draft: false
         prerelease: false
 
-    # Upload the DEFAULT_MENU.TXT file as a release asset
     - name: Upload DEFAULT_MENU.TXT
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1    # Updated to more maintained action
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./DEFAULT_MENU.TXT
-        asset_name: DEFAULT_MENU.TXT
-        asset_content_type: text/plain
+        files: DEFAULT_MENU.TXT
+        tag_name: v1.${{ github.run_id}}
 
-    # Upload the custom_keys.xci file as a release asset
     - name: Upload custom_keys.xci
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1    # Updated to more maintained action
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./custom_keys.xci
-        asset_name: custom_keys.xci
-        asset_content_type: text/plain
+        files: custom_keys.xci
+        tag_name: v1.${{ github.run_id}}
 
-    # Continue uploading other files as needed...
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
+    - name: Upload Release EXE
+      uses: softprops/action-gh-release@v1    # Updated to more maintained action
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dynamic_XCS_hotkey.exe
-        asset_name: dynamic_XCS_hotkey.exe
-        asset_content_type: application/octet-stream
+        files: dynamic_XCS_hotkey.exe
+        tag_name: v1.${{ github.run_id}}
