@@ -34,6 +34,7 @@ To use this:
 - Top Buttons 1-4
 - Bottom Buttons 1-4
 - OK and Cancel buttons
+- The toggle mouse hotkey on the XCsoar tab will also toggle to LXSim for mouse control
 
 # Hard coded version
 If you know the AHK names for the keys/buttons you want to use, you can also modify the hard-coded-version.ahk script and use that instead.
