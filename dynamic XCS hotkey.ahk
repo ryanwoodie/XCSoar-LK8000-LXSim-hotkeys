@@ -139,10 +139,10 @@ config:
     Gui, Add, Text, x10 y%guiYPosition% w800, Press and hold your key/button until it is detected. If the key (eg. F1) needs a modifier button (eg. Fn), hold the modifier before pressing the assign button below
     guiYPosition += 40  ; Adjust the position for the next element
 
-    Gui, Add, Tab3, x2 y2 h800 w1000 vCurrentTab gTabChanged, Regular Keys|Extra Keys|LXSim Controls
+    Gui, Add, Tab3, x2 y2 h800 w1000 vCurrentTab gTabChanged, XCsoar and LK8000 Controls|Extra LK8000 Controls|LXSim Controls
 
     ; Regular Keys Tab
-    Gui, Tab, Regular Keys
+    Gui, Tab, XCsoar and LK8000 Controls
     Gui,Font,bold
     Gui, Add, Text, x10 y%guiYPosition%, Function:
     Gui, Add, Text, x525 y%guiYPosition%, Current Key/Value:
@@ -162,7 +162,7 @@ config:
     }
 
     ; Extra Keys Tab
-    Gui, Tab, Extra Keys
+    Gui, Tab, Extra LK8000 Controls
     guiYPosition := 65
 
     Gui,Font,bold
