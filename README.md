@@ -1,4 +1,7 @@
 # XCSoar-LK8000-LXSim-hotkeys
+
+NOTE: Script needs modification for non-QWERTY keyboards to work with LXSim (see issues tab).
+
 Map joystick controls/buttons, or keys, to control XCSoar, LK8000, or LXSim. Great for VR.
 
 This script controls XCSoar/LK8000/LXSim without losing focus (except to toggle mouse control) on your active app (ie. Condor).
