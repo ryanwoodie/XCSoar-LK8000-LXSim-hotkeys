@@ -1,4 +1,5 @@
-o::
+;; change the 2 hotkeys below to your key or joystick button of choice
+o:: ;restart Condor Flight
 {
     SetMouseDelay, -1
     
