@@ -10,26 +10,38 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4    # Updated from v2
+    - uses: actions/checkout@v4
 
     - name: Set up AutoHotkey
       run: |
-        choco install autohotkey
+        choco install autohotkey.portable
 
     - name: Compile AHK Script
       run: |
-        & 'C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe' '/in' 'dynamic XCS hotkey.ahk' '/out' 'dynamic_XCS_hotkey.exe'
+        # Try AutoHotkey v1 path first
+        $ahk2exe = "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
+        if (-not (Test-Path $ahk2exe)) {
+            # Try AutoHotkey v2 path
+            $ahk2exe = "C:\ProgramData\chocolatey\lib\autohotkey.portable\tools\Compiler\Ahk2Exe.exe"
+        }
+        
+        if (Test-Path $ahk2exe) {
+            & $ahk2exe /in "XCSoar-LK8000-hotkeys\dynamic XCS hotkey.ahk" /out "dynamic_XCS_hotkey.exe"
+        } else {
+            Write-Error "Could not find Ahk2Exe.exe"
+            exit 1
+        }
 
     - name: List files in directory
       run: |
         Get-ChildItem
 
     - name: Upload Compiled EXE
-      uses: actions/upload-artifact@v4    # Updated from v2
+      uses: actions/upload-artifact@v4
       with:
         name: Compiled-EXE
         path: dynamic_XCS_hotkey.exe
-        retention-days: 90  # Optional: specify how long to keep the artifact
+        retention-days: 90
 
     - name: Create Release
       id: create_release
@@ -43,7 +55,7 @@ jobs:
         prerelease: false
 
     - name: Upload DEFAULT_MENU.TXT
-      uses: softprops/action-gh-release@v1    # Updated to more maintained action
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -51,7 +63,7 @@ jobs:
         tag_name: v1.${{ github.run_id}}
 
     - name: Upload custom_keys.xci
-      uses: softprops/action-gh-release@v1    # Updated to more maintained action
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -59,7 +71,7 @@ jobs:
         tag_name: v1.${{ github.run_id}}
 
     - name: Upload Release EXE
-      uses: softprops/action-gh-release@v1    # Updated to more maintained action
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
