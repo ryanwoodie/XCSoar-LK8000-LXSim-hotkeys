@@ -13,9 +13,9 @@ DetectHiddenWindows, On
 ; Global variables and mappings
 global iniFilePath := A_ScriptDir . "\settings.ini"
 
-global commandList := ["Enter", "Esc", "F1_Quick_Menu", "Up", "Down", "Left", "Right", "Zoom_Out", "Zoom_In", "Pan_Mode", "Auto_MC", "MC_Up", "MC_Down", "Task_Next", "Task_Previous", "Toggle_Mouse", "Extra_LK_Bottom_Bar_L", "Extra_LK_Bottom_Bar_R", "Extra_LK_Prev_Page", "Extra_LK_Next_Page", "Extra_LK_Top_Left", "Extra_LK_Top_Right", "Extra_LK_custom_menu_q", "Extra_LK_custom_menu_w", "Extra_LK_custom_menu_e", "Extra_LK_custom_menu_r", "Extra_LK_custom_menu_t", "Extra_LK_custom_menu_y", "Extra_LK_custom_menu_u", "Extra_LK_custom_menu_i", "Extra_LK_custom_menu_o", "Extra_LK_custom_menu_p", "LXSim_Top_Dial_PageUp", "LXSim_Top_Dial_PageDown", "LXSim_Bottom_Right_Up", "LXSim_Bottom_Right_Down", "LXSim_Bottom_Left_Left_Zoom_Out", "LXSim_Bottom_Left_Right_Zoom_In", "LXSim_Top_Button_1", "LXSim_Top_Button_2", "LXSim_Top_Button_3", "LXSim_Top_Button_4", "LXSim_Bottom_Button_1", "LXSim_Bottom_Button_2", "LXSim_Bottom_Button_3", "LXSim_Bottom_Button_4", "LXSim_OK", "LXSim_Cancel"]
+global commandList := ["Enter", "Esc", "F1_Quick_Menu", "Up", "Down", "Left", "Right", "Zoom_Out", "Zoom_In", "Pan_Mode", "Auto_MC", "MC_Up", "MC_Down", "Task_Next", "Task_Previous", "Toggle_Mouse", "Extra_LK_Bottom_Bar_L", "Extra_LK_Bottom_Bar_R", "Extra_LK_Prev_Page", "Extra_LK_Next_Page", "Extra_LK_Top_Left", "Extra_LK_Top_Right", "Extra_LK_custom_menu_q", "Extra_LK_custom_menu_w", "Extra_LK_custom_menu_e", "Extra_LK_custom_menu_r", "Extra_LK_custom_menu_t", "Extra_LK_custom_menu_y", "Extra_LK_custom_menu_u", "Extra_LK_custom_menu_i", "Extra_LK_custom_menu_o", "Extra_LK_custom_menu_p", "LXSim_Top_Dial_PageUp", "LXSim_Top_Dial_PageDown", "LXSim_Bottom_Right_Up", "LXSim_Bottom_Right_Down", "LXSim_Bottom_Left_Left_Zoom_Out", "LXSim_Bottom_Left_Right_Zoom_In", "LXSim_Top_Button_1", "LXSim_Top_Button_2", "LXSim_Top_Button_3", "LXSim_Top_Button_4", "LXSim_Bottom_Button_1", "LXSim_Bottom_Button_2", "LXSim_Bottom_Button_3", "LXSim_Bottom_Button_4", "LXSim_OK", "LXSim_Cancel", "Restart_Flight"]
 
-global commandMappings := {"Enter": "{Enter}", "Esc": "{Escape}", "F1_Quick_Menu": "{F1}", "Up": "{Up}", "Down": "{Down}", "Left": "{Left}", "Right": "{Right}", "Zoom_Out": "{F3}", "Zoom_In": "{F4}", "Pan_Mode": "{F2}", "Auto_MC": "{F6}", "MC_Up": "{F7}", "MC_Down": "{F8}", "Task_Next": "{F9}", "Task_Previous": "{F10}", "Toggle_Mouse": "{F13}", "Extra_LK_Bottom_Bar_L": "{a}", "Extra_LK_Bottom_Bar_R": "{s}", "Extra_LK_Prev_Page": "{d}", "Extra_LK_Next_Page": "{f}", "Extra_LK_Top_Left": "{g}", "Extra_LK_Top_Right": "{h}", "Extra_LK_custom_menu_q": "{q}", "Extra_LK_custom_menu_w": "{w}", "Extra_LK_custom_menu_e": "{e}", "Extra_LK_custom_menu_r": "{r}", "Extra_LK_custom_menu_t": "{t}", "Extra_LK_custom_menu_y": "{y}", "Extra_LK_custom_menu_u": "{u}", "Extra_LK_custom_menu_i": "{i}", "Extra_LK_custom_menu_o": "{o}", "Extra_LK_custom_menu_p": "{p}", "LXSim_Top_Dial_PageUp": "{PgUp}", "LXSim_Top_Dial_PageDown": "{PgDn}", "LXSim_Bottom_Right_Up": "{Up}", "LXSim_Bottom_Right_Down": "{Down}", "LXSim_Bottom_Left_Left_Zoom_Out": "{Left}", "LXSim_Bottom_Left_Right_Zoom_In": "{Right}", "LXSim_Top_Button_1": "{1}", "LXSim_Top_Button_2": "{2}", "LXSim_Top_Button_3": "{3}", "LXSim_Top_Button_4": "{4}", "LXSim_Bottom_Button_1": "{q}", "LXSim_Bottom_Button_2": "{w}", "LXSim_Bottom_Button_3": "{e}", "LXSim_Bottom_Button_4": "{r}","LXSim_OK": "{l}", "LXSim_Cancel": "{j}"}
+global commandMappings := {"Enter": "{Enter}", "Esc": "{Escape}", "F1_Quick_Menu": "{F1}", "Up": "{Up}", "Down": "{Down}", "Left": "{Left}", "Right": "{Right}", "Zoom_Out": "{F3}", "Zoom_In": "{F4}", "Pan_Mode": "{F2}", "Auto_MC": "{F6}", "MC_Up": "{F7}", "MC_Down": "{F8}", "Task_Next": "{F9}", "Task_Previous": "{F10}", "Toggle_Mouse": "{F13}", "Extra_LK_Bottom_Bar_L": "{a}", "Extra_LK_Bottom_Bar_R": "{s}", "Extra_LK_Prev_Page": "{d}", "Extra_LK_Next_Page": "{f}", "Extra_LK_Top_Left": "{g}", "Extra_LK_Top_Right": "{h}", "Extra_LK_custom_menu_q": "{q}", "Extra_LK_custom_menu_w": "{w}", "Extra_LK_custom_menu_e": "{e}", "Extra_LK_custom_menu_r": "{r}", "Extra_LK_custom_menu_t": "{t}", "Extra_LK_custom_menu_y": "{y}", "Extra_LK_custom_menu_u": "{u}", "Extra_LK_custom_menu_i": "{i}", "Extra_LK_custom_menu_o": "{o}", "Extra_LK_custom_menu_p": "{p}", "LXSim_Top_Dial_PageUp": "{PgUp}", "LXSim_Top_Dial_PageDown": "{PgDn}", "LXSim_Bottom_Right_Up": "{Up}", "LXSim_Bottom_Right_Down": "{Down}", "LXSim_Bottom_Left_Left_Zoom_Out": "{Left}", "LXSim_Bottom_Left_Right_Zoom_In": "{Right}", "LXSim_Top_Button_1": "{1}", "LXSim_Top_Button_2": "{2}", "LXSim_Top_Button_3": "{3}", "LXSim_Top_Button_4": "{4}", "LXSim_Bottom_Button_1": "{q}", "LXSim_Bottom_Button_2": "{w}", "LXSim_Bottom_Button_3": "{e}", "LXSim_Bottom_Button_4": "{r}", "LXSim_OK": "{l}", "LXSim_Cancel": "{j}", "Restart_Flight": "{F14}"}
 
 ; Detect keyboard layout
 global keyboardLayout := "QWERTY"  ; Default
@@ -26,7 +26,7 @@ SetFormat, Integer, D
 ; Detect common keyboard layouts
 Switch kbLayout {
     ; French AZERTY
-    Case 0x40C0409, 0x40C:
+    Case 0x40C0409, 0x40C040C, 0x40C:
         keyboardLayout := "AZERTY"
         MsgBox, AZERTY keyboard (French) detected. Key mappings will be adjusted accordingly.
     
@@ -135,7 +135,9 @@ GetXCSoarWindows() {
 DynamicHotkeyFunction:
     global hotkeyCommands, commandMappings
     commandName := hotkeyCommands[A_ThisHotkey]
-    if (commandName != "") {
+    if (commandName = "Restart_Flight") {
+        RestartFlight()
+    } else if (commandName != "") {
         sendString := commandMappings[commandName]
         if (sendString != "") {
             SendToXCS(sendString)
@@ -206,12 +208,20 @@ config:
 {
     Gui, New
     guiYPosition := 25
+    
     Gui, Add, Text, x10 y%guiYPosition% w800, Press and hold your key/button until it is detected. If the key (eg. F1) needs a modifier button (eg. Fn), hold the modifier before pressing the assign button below
+    
+    guiYPosition += 30
+    ; Add warning text in bold
+    Gui,Font,bold
+    Gui, Add, Text, x10 y%guiYPosition% w800 cRed, Note: any keys you bind here will no longer work for other programs while this script is running.
+    Gui,Font,normal
+    
     guiYPosition += 40  ; Adjust the position for the next element
 
     Gui, Add, Button, x10 y750 w300 h30 gButtonCloseClick, Close and Activate Navigation
 
-    Gui, Add, Tab3, x2 y%guiYPosition% h650 w1000 vCurrentTab gTabChanged, XCsoar and LK8000 Controls|Extra LK8000 Controls|LXSim Controls|Mouse Control
+    Gui, Add, Tab3, x2 y%guiYPosition% h650 w1000 vCurrentTab gTabChanged, XCsoar and LK8000 Controls|Extra LK8000 Controls|LXSim Controls|Mouse / Restart
 
     ; Regular Keys Tab
     Gui, Tab, XCsoar and LK8000 Controls
@@ -222,7 +232,7 @@ config:
     Gui,Font,normal
 
     for index, commandName in commandList {
-        if (!StrContains(commandName, "Extra_") && !StrContains(commandName, "LXSim_") && commandName != "Toggle_Mouse") { 
+        if (!StrContains(commandName, "Extra_") && !StrContains(commandName, "LXSim_") && commandName != "Toggle_Mouse" && commandName != "Restart_Flight") { 
             IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
             Gui, Add, Text, x10 y%guiYPosition% w200, %commandName%
             Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput v%commandName%_xyz, Assign Key/Button
@@ -356,7 +366,7 @@ for index, commandName in commandList {
         }
     }
  
-    Gui, Tab, Mouse Control
+    Gui, Tab, Mouse / Restart
     guiYPosition := 65
 
     Gui,Font,bold
@@ -379,6 +389,21 @@ for index, commandName in commandList {
     ; Add help text
     guiYPosition += 40
     Gui, Add, Text, x20 y%guiYPosition% w600, The Toggle Mouse function will switch focus between the XCS/LX/LK app and Condor, allowing mouse control of the app while in the VR cockpit.
+
+    guiYPosition += 150  ; Add some space after mouse controls
+    Gui, Add, GroupBox, x10 y%guiYPosition% w650 h100, Restart Flight Settings
+    guiYPosition += 30
+
+    ; Add Restart Flight control
+    IniRead, currentKeyValue, %iniFilePath%, InputBindings, Restart_Flight, None
+    Gui, Add, Text, x20 y%guiYPosition% w200, Restart Flight
+    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vRestart_Flight_xyz, Assign Key/Button
+    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vRestart_Flight_abc, Assign Axis/HAT
+    Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
+
+    ; Add help text
+    guiYPosition += 40
+    Gui, Add, Text, x20 y%guiYPosition% w600, The Restart Flight function will switch to Condor, press Esc, and click the restart button.
 
     Gui, Tab  ; End of tabs
     Gui, Show
@@ -417,6 +442,7 @@ AssignInput() {
     selectedCommand := StrReplace(selectedCommand,"extra_")
     selectedCommand := StrReplace(selectedCommand,"lx_")
     selectedCommand := StrReplace(selectedCommand,"mouse_")
+    selectedCommand := StrReplace(selectedCommand,"Restart_Flight_")
     
     GuiControl,, %A_GuiControl%, Press Key/Button  ; Update the button text
     inputStartTime := A_TickCount
@@ -526,6 +552,7 @@ AssignAxis() {
     selectedCommand := StrReplace(selectedCommand,"extra_")
     selectedCommand := StrReplace(selectedCommand,"lx_")
     selectedCommand := StrReplace(selectedCommand,"mouse_")
+    selectedCommand := StrReplace(selectedCommand,"Restart_Flight_")
     
     axes_list := "X,Y,Z,R,U,V"
     startTime := A_TickCount
@@ -658,3 +685,31 @@ sendjoy(commandName) {
 TabChanged:
     GuiControlGet, currentTab,, CurrentTab
 return
+
+RestartFlight() {
+    SetMouseDelay, -1
+    
+    ; Send Alt-Tab twice to focus the game
+    Send, {Alt Down}{Tab}{Alt Up}
+    Sleep, 200  ; Wait for window focus
+    if WinExist("ahk_exe CONDOR.EXE") {
+        WinActivate
+    }
+    WinWaitActive, ahk_exe CONDOR.EXE,, 5
+    if ErrorLevel
+        Send, {Alt Down}{Tab}{Alt Up}
+    
+    ; Send Esc to bring up menu
+    Send, {Esc}
+    Sleep, 100  ; Wait for menu
+    
+    ; Mouse will be at 900,540 after game focus
+    ; Need to move up 240px
+    DllCall("mouse_event", "UInt", 0x0001, "Int", 0, "Int", -240, "UInt", 0, "UInt", 0)
+    Sleep, 50
+    
+    ; Send left mouse button down and up
+    DllCall("mouse_event", "UInt", 0x0002, "Int", 0, "Int", 0, "UInt", 0, "UInt", 0)  ; Left down
+    Sleep, 50
+    DllCall("mouse_event", "UInt", 0x0004, "Int", 0, "Int", 0, "UInt", 0, "UInt", 0)  ; Left up
+}
