@@ -1,6 +1,7 @@
 name: Compile AHK Script
 
 on:
+  workflow_dispatch:  # Allows manual triggering
   push:
     paths:
       - '*hotkey.ahk'  # Trigger the workflow only when .ahk files are changed
@@ -14,23 +15,23 @@ jobs:
 
     - name: Set up AutoHotkey
       run: |
-        choco install autohotkey.portable
+        choco install autohotkey.install --version=1.1.37.01
 
     - name: Compile AHK Script
       run: |
         # Wait 2 seconds before attempting to compile
         Start-Sleep -Seconds 2
-        # Try AutoHotkey v1 path first
+        
+        # Check for AutoHotkey v1 path
         $ahk2exe = "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
-        if (-not (Test-Path $ahk2exe)) {
-            # Try AutoHotkey v2 portable path
-            $ahk2exe = "C:\ProgramData\chocolatey\lib\autohotkey.portable\tools\Compiler\Ahk2Exe.exe"
-        }
         
         if (Test-Path $ahk2exe) {
             & $ahk2exe /in "XCSoar-LK8000-hotkeys\dynamic XCS hotkey.ahk" /out "dynamic_XCS_hotkey.exe"
         } else {
             Write-Error "Could not find Ahk2Exe.exe"
+            Write-Host "Searching for Ahk2Exe in:"
+            Write-Host "- $ahk2exe"
+            Get-ChildItem "C:\Program Files\AutoHotkey" -Recurse | Where-Object { $_.Name -like "*Ahk2Exe*" }
             exit 1
         }
 
