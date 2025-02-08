@@ -18,10 +18,12 @@ jobs:
 
     - name: Compile AHK Script
       run: |
+        # Wait 2 seconds before attempting to compile
+        Start-Sleep -Seconds 2
         # Try AutoHotkey v1 path first
         $ahk2exe = "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
         if (-not (Test-Path $ahk2exe)) {
-            # Try AutoHotkey v2 path
+            # Try AutoHotkey v2 portable path
             $ahk2exe = "C:\ProgramData\chocolatey\lib\autohotkey.portable\tools\Compiler\Ahk2Exe.exe"
         }
         

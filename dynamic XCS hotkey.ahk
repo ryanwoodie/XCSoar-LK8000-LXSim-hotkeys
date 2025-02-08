@@ -187,7 +187,7 @@ SendToXCS(keys) {
                     }
                 }
             }
-        } 
+        }
         return
     }
 

@@ -39,5 +39,24 @@ To use this:
 - OK and Cancel buttons
 - The toggle mouse hotkey on the XCsoar tab will also toggle to LXSim for mouse control
 
+## New Features
+
+### Restart Flight Function
+The script now includes a Restart Flight function that can be assigned to any key or joystick button. This feature allows you to:
+- Quickly restart a flight in Condor without using the mouse
+- Switch focus to Condor automatically
+- Navigate the menu and click the restart button
+
+You can assign this function in two ways:
+1. Through the main GUI under the "Mouse / Restart" tab
+2. Using the standalone script `restart flight.ahk` (includes both restart and exit flight functions)
+
+The function works by:
+1. Switching focus to Condor
+2. Opening the menu with Esc
+3. Clicking the restart button automatically
+
+Note: The function assumes Condor resets the mouse to position (900,540) when focused, which is used as a reference point for the menu navigation.
+
 # Hard coded version
 If you know the AHK names for the keys/buttons you want to use, you can also modify the hard-coded-version.ahk script and use that instead.
