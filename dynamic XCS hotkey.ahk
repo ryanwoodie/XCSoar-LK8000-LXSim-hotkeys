@@ -10,7 +10,7 @@ SetTitleMatchMode, 2
 DetectHiddenWindows, On
 
 
-; Global variables and  mappings
+; Global variables and mappings
 global iniFilePath := A_ScriptDir . "\settings.ini"
 
 global commandList := ["Enter", "Esc", "F1_Quick_Menu", "Up", "Down", "Left", "Right", "Zoom_Out", "Zoom_In", "Pan_Mode", "Auto_MC", "MC_Up", "MC_Down", "Task_Next", "Task_Previous", "Toggle_Mouse", "Extra_LK_Bottom_Bar_L", "Extra_LK_Bottom_Bar_R", "Extra_LK_Prev_Page", "Extra_LK_Next_Page", "Extra_LK_Top_Left", "Extra_LK_Top_Right", "Extra_LK_custom_menu_q", "Extra_LK_custom_menu_w", "Extra_LK_custom_menu_e", "Extra_LK_custom_menu_r", "Extra_LK_custom_menu_t", "Extra_LK_custom_menu_y", "Extra_LK_custom_menu_u", "Extra_LK_custom_menu_i", "Extra_LK_custom_menu_o", "Extra_LK_custom_menu_p", "LXSim_Top_Dial_PageUp", "LXSim_Top_Dial_PageDown", "LXSim_Bottom_Right_Up", "LXSim_Bottom_Right_Down", "LXSim_Bottom_Left_Left_Zoom_Out", "LXSim_Bottom_Left_Right_Zoom_In", "LXSim_Top_Button_1", "LXSim_Top_Button_2", "LXSim_Top_Button_3", "LXSim_Top_Button_4", "LXSim_Bottom_Button_1", "LXSim_Bottom_Button_2", "LXSim_Bottom_Button_3", "LXSim_Bottom_Button_4", "LXSim_OK", "LXSim_Cancel", "Restart_Flight"]
