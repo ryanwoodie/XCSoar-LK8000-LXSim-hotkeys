@@ -77,6 +77,7 @@ global hotkeyCommands := {}
 global JoystickNumber = 0
 global UserInput := ""
 global currentTab := 1
+global silentStartup := 0
 
 Loop 16  ; Query each joystick number to find out which ones exist.
 {
@@ -89,7 +90,29 @@ Loop 16  ; Query each joystick number to find out which ones exist.
 
 ; Initialize key assignments
 createKeys()
-gosub,config
+
+; Read silent startup setting
+IniRead, silentStartup, %iniFilePath%, Settings, SilentStartup, 0
+
+; Handle startup - either silent with tooltip or show config
+if (silentStartup = 1) {
+    ; Silent startup - show tooltip for 3 seconds
+    startupTime := A_TickCount
+    Tooltip, Press Ctrl+i to open Dynamic XCS Hotkey settings...
+
+    ; Wait up to 3 seconds, checking for Ctrl+I
+    while ((A_TickCount - startupTime) < 3000) {
+        if (GetKeyState("Control", "P") && GetKeyState("i", "P")) {
+            Tooltip  ; Clear tooltip
+            gosub, config
+            break
+        }
+        Sleep, 50
+    }
+    Tooltip  ; Clear tooltip after 3 seconds
+} else {
+    gosub, config
+}
 
 ; Hotkey to start the configuration
 ^i::
@@ -218,9 +241,15 @@ config:
     
     guiYPosition += 40  ; Adjust the position for the next element
 
+    ; Add silent startup checkbox
+    IniRead, silentStartup, %iniFilePath%, Settings, SilentStartup, 0
+    Gui, Add, CheckBox, x10 y%guiYPosition% vSilentStartupCheck gSilentStartupChanged Checked%silentStartup%, Start silently (show tooltip for 3 sec instead of this window)
+
+    guiYPosition += 30
+
     Gui, Add, Button, x10 y750 w300 h30 gButtonCloseClick, Close and Activate Navigation
 
-    Gui, Add, Tab3, x2 y%guiYPosition% h650 w1000 vCurrentTab gTabChanged, XCsoar and LK8000 Controls|Extra LK8000 Controls|LXSim Controls|Mouse / Restart
+    Gui, Add, Tab3, x2 y%guiYPosition% h620 w1000 vCurrentTab gTabChanged, XCsoar and LK8000 Controls|Extra LK8000 Controls|LXSim Controls|Mouse / Restart
 
     ; Regular Keys Tab
     Gui, Tab, XCsoar and LK8000 Controls
@@ -683,6 +712,11 @@ sendjoy(commandName) {
 
 TabChanged:
     GuiControlGet, currentTab,, CurrentTab
+return
+
+SilentStartupChanged:
+    GuiControlGet, silentStartup,, SilentStartupCheck
+    IniWrite, %silentStartup%, %iniFilePath%, Settings, SilentStartup
 return
 
 RestartFlight() {
