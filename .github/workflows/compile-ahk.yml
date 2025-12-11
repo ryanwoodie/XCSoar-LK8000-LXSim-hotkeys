@@ -19,19 +19,13 @@ jobs:
 
     - name: Compile AHK Script
       run: |
-        # Wait 2 seconds before attempting to compile
         Start-Sleep -Seconds 2
-        
-        # Check for AutoHotkey v1 path
         $ahk2exe = "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
-        
+
         if (Test-Path $ahk2exe) {
-            & $ahk2exe /in "XCSoar-LK8000-hotkeys\dynamic XCS hotkey.ahk" /out "dynamic_XCS_hotkey.exe"
+            & $ahk2exe /in "dynamic XCS hotkey.ahk" /out "dynamic_XCS_hotkey.exe"
         } else {
             Write-Error "Could not find Ahk2Exe.exe"
-            Write-Host "Searching for Ahk2Exe in:"
-            Write-Host "- $ahk2exe"
-            Get-ChildItem "C:\Program Files\AutoHotkey" -Recurse | Where-Object { $_.Name -like "*Ahk2Exe*" }
             exit 1
         }
 
@@ -46,37 +40,14 @@ jobs:
         path: dynamic_XCS_hotkey.exe
         retention-days: 90
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
+    - name: Create Release and Upload Files
+      uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v1.${{ github.run_id}}
-        release_name: v1.${{ github.run_id}}
-        draft: false
-        prerelease: false
-
-    - name: Upload DEFAULT_MENU.TXT
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: DEFAULT_MENU.TXT
-        tag_name: v1.${{ github.run_id}}
-
-    - name: Upload custom_keys.xci
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: custom_keys.xci
-        tag_name: v1.${{ github.run_id}}
-
-    - name: Upload Release EXE
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: dynamic_XCS_hotkey.exe
-        tag_name: v1.${{ github.run_id}}
+        tag_name: v1.${{ github.run_id }}
+        name: v1.${{ github.run_id }}
+        files: |
+          dynamic_XCS_hotkey.exe
+          DEFAULT_MENU.TXT
+          custom_keys.xci
