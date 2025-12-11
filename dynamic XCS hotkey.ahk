@@ -24,31 +24,30 @@ kbLayout := DllCall("GetKeyboardLayout", "UInt", 0, "UInt")
 SetFormat, Integer, D
 
 ; Detect common keyboard layouts
-Switch kbLayout {
+if (kbLayout = 0x40C0409 || kbLayout = 0x40C040C || kbLayout = 0x40C) {
     ; French AZERTY
-    Case 0x40C0409, 0x40C040C, 0x40C:
-        keyboardLayout := "AZERTY"
-        MsgBox, AZERTY keyboard (French) detected. Key mappings will be adjusted accordingly.
-    
+    keyboardLayout := "AZERTY"
+    MsgBox, AZERTY keyboard (French) detected. Key mappings will be adjusted accordingly.
+}
+else if (kbLayout = 0x4070409 || kbLayout = 0x407) {
     ; German QWERTZ
-    Case 0x4070409, 0x407:
-        keyboardLayout := "QWERTZ"
-        MsgBox, QWERTZ keyboard (German) detected. Key mappings will be adjusted accordingly.
-    
+    keyboardLayout := "QWERTZ"
+    MsgBox, QWERTZ keyboard (German) detected. Key mappings will be adjusted accordingly.
+}
+else if (kbLayout = 0x8090409 || kbLayout = 0x809) {
     ; Belgian AZERTY
-    Case 0x8090409, 0x809:
-        keyboardLayout := "AZERTY"
-        MsgBox, AZERTY keyboard (Belgian) detected. Key mappings will be adjusted accordingly.
-    
+    keyboardLayout := "AZERTY"
+    MsgBox, AZERTY keyboard (Belgian) detected. Key mappings will be adjusted accordingly.
+}
+else if (kbLayout = 0x8070409 || kbLayout = 0x807) {
     ; Swiss German QWERTZ
-    Case 0x8070409, 0x807:
-        keyboardLayout := "QWERTZ"
-        MsgBox, QWERTZ keyboard (Swiss German) detected. Key mappings will be adjusted accordingly.
-    
+    keyboardLayout := "QWERTZ"
+    MsgBox, QWERTZ keyboard (Swiss German) detected. Key mappings will be adjusted accordingly.
+}
+else if (kbLayout = 0x100C0409 || kbLayout = 0x100C) {
     ; Swiss French QWERTZ
-    Case 0x100C0409, 0x100C:
-        keyboardLayout := "QWERTZ"
-        MsgBox, QWERTZ keyboard (Swiss French) detected. Key mappings will be adjusted accordingly.
+    keyboardLayout := "QWERTZ"
+    MsgBox, QWERTZ keyboard (Swiss French) detected. Key mappings will be adjusted accordingly.
 }
 
 ; Adjust mappings based on keyboard layout
