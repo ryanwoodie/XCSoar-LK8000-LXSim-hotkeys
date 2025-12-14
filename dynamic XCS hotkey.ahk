@@ -74,6 +74,7 @@ else if (keyboardLayout = "QWERTZ") {
 
 global joystickBindings := {}
 global hotkeyCommands := {}
+global modifierBindings := {}
 global JoystickNumber = 0
 global UserInput := ""
 global currentTab := 1
@@ -119,10 +120,66 @@ if (silentStartup = 1) {
     Gosub, config
 return
 
+; Convert modifier key name to AHK hotkey prefix
+GetModifierPrefix(modifier) {
+    if (modifier = "" || modifier = "None" || modifier = "ERROR") {
+        return ""
+    }
+    ; Map modifier names to AHK hotkey prefixes
+    ; ^ = Ctrl, + = Shift, ! = Alt, # = Win
+    ; < = Left, > = Right
+    StringLower, modLower, modifier
+
+    if (modifier = "LControl" || modLower = "lctrl") {
+        return "<^"
+    }
+    if (modifier = "RControl" || modLower = "rctrl") {
+        return ">^"
+    }
+    if (modLower = "control" || modLower = "ctrl") {
+        return "^"
+    }
+    if (modifier = "LShift") {
+        return "<+"
+    }
+    if (modifier = "RShift") {
+        return ">+"
+    }
+    if (modLower = "shift") {
+        return "+"
+    }
+    if (modifier = "LAlt" || modLower = "lalt") {
+        return "<!"
+    }
+    if (modifier = "RAlt" || modLower = "ralt") {
+        return ">!"
+    }
+    if (modLower = "alt") {
+        return "!"
+    }
+    if (modifier = "LWin") {
+        return "<#"
+    }
+    if (modifier = "RWin") {
+        return ">#"
+    }
+
+    ; For joystick buttons or other keys used as modifiers, we can't use AHK prefix
+    ; Return empty and handle at runtime
+    return ""
+}
+
 ; Function to create keys
 createKeys() {
     for index, commandName in commandList {
         IniRead, keyAssignment, %iniFilePath%, InputBindings, %commandName%
+        IniRead, modifierAssignment, %iniFilePath%, Modifiers, %commandName%, None
+
+        ; Store modifier if one exists
+        if (modifierAssignment != "None" && modifierAssignment != "ERROR") {
+            modifierBindings[commandName] := modifierAssignment
+        }
+
         if (keyAssignment != "ERROR") {
             if InStr(keyAssignment, ",") {
                 ; Handle joystick input
@@ -131,9 +188,24 @@ createKeys() {
                 axis := joystickBindings[commandName]["axis"]
                 trigger := joystickBindings[commandName]["trigger"]
             } else {
-                ; Treat it as a hotkey
-                hotkeyCommands[keyAssignment] := commandName
-                Hotkey, % keyAssignment, DynamicHotkeyFunction
+                ; Build hotkey with modifier prefix if applicable
+                modPrefix := GetModifierPrefix(modifierAssignment)
+
+                ; If modifier is a joystick button or regular key, we need runtime check
+                ; Otherwise use AHK's native modifier handling
+                if (modifierAssignment != "None" && modifierAssignment != "ERROR" && modPrefix = "") {
+                    ; Non-standard modifier (joystick button or regular key) - use * prefix and runtime check
+                    hotkeyName := "*" . keyAssignment
+                } else if (modPrefix != "") {
+                    ; Standard modifier - use AHK prefix (e.g., ^k for Ctrl+K)
+                    hotkeyName := modPrefix . keyAssignment
+                } else {
+                    ; No modifier - just the key
+                    hotkeyName := keyAssignment
+                }
+
+                hotkeyCommands[hotkeyName] := commandName
+                Hotkey, % hotkeyName, DynamicHotkeyFunction
             }
         }
     }
@@ -153,21 +225,51 @@ GetXCSoarWindows() {
     return windows
 }
 
+; Check if non-standard modifier (joystick button or regular key) is held
+; Standard modifiers (Ctrl, Shift, Alt, Win) are handled by AHK hotkey prefix
+IsNonStandardModifierHeld(commandName) {
+    global modifierBindings
+    if (!modifierBindings.HasKey(commandName)) {
+        return true  ; No modifier required
+    }
+    modifier := modifierBindings[commandName]
+    if (modifier = "" || modifier = "None") {
+        return true  ; No modifier required
+    }
+
+    ; If it has an AHK prefix, it's handled natively - always return true
+    modPrefix := GetModifierPrefix(modifier)
+    if (modPrefix != "") {
+        return true  ; Standard modifier handled by AHK
+    }
+
+    ; Check if it's a joystick button
+    if (InStr(modifier, "Joy")) {
+        return GetKeyState(modifier, "P")
+    }
+
+    ; For regular keys used as modifiers, check physical state
+    return GetKeyState(modifier, "P")
+}
+
 ; Generic function for dynamic hotkeys
 DynamicHotkeyFunction:
-    global hotkeyCommands, commandMappings
+    global hotkeyCommands, commandMappings, modifierBindings
     commandName := hotkeyCommands[A_ThisHotkey]
+
+    ; Check if non-standard modifier is held (joystick buttons, regular keys as modifiers)
+    ; Standard modifiers (Ctrl, Shift, Alt, Win) are already handled by AHK hotkey prefix
+    if (!IsNonStandardModifierHeld(commandName)) {
+        return  ; Non-standard modifier not held, don't execute
+    }
+
     if (commandName = "Restart_Flight") {
         RestartFlight()
     } else if (commandName != "") {
         sendString := commandMappings[commandName]
         if (sendString != "") {
             SendToXCS(sendString)
-        } else {
-            Tooltip, % "No command string found for: " . commandName
         }
-    } else {
-        Tooltip, % "Unknown hotkey: " . A_ThisHotkey
     }
 return
 
@@ -229,209 +331,267 @@ SendToXCS(keys) {
 config:
 {
     Gui, New
-    guiYPosition := 25
-    
-    Gui, Add, Text, x10 y%guiYPosition% w800, Press and hold your key/button until it is detected. If the key (eg. F1) needs a modifier button (eg. Fn), hold the modifier before pressing the assign button below
-    
-    guiYPosition += 30
-    ; Add warning text in bold
+
+    ; Define column positions for consistent alignment
+    col1 := 15      ; Function name
+    col2 := 200     ; Key/Btn button
+    col3 := 280     ; Axis/HAT button
+    col4 := 360     ; Binding value
+    col5 := 480     ; Modifier button
+    col6 := 560     ; Modifier value
+    col7 := 660     ; Clear button
+    rowHeight := 28
+
+    guiYPosition := 15
+
+    Gui, Add, Text, x10 y%guiYPosition% w700, Press and hold your key/button until it is detected. If using F-keys that require Fn, hold Fn before clicking assign.
+    guiYPosition += 20
     Gui,Font,bold
-    Gui, Add, Text, x10 y%guiYPosition% w800 cRed, Note: any keys you bind here will no longer work for other programs while this script is running.
+    Gui, Add, Text, x10 y%guiYPosition% w700 cRed, Note: keys bound here will not work for other programs while this script runs.
     Gui,Font,normal
-    
-    guiYPosition += 40  ; Adjust the position for the next element
+    guiYPosition += 22
 
     ; Add silent startup checkbox
     IniRead, silentStartup, %iniFilePath%, Settings, SilentStartup, 0
     Gui, Add, CheckBox, x10 y%guiYPosition% vSilentStartupCheck gSilentStartupChanged Checked%silentStartup%, Start silently (show tooltip for 3 sec instead of this window)
-
-    guiYPosition += 30
+    guiYPosition += 25
 
     Gui, Add, Button, x10 y750 w300 h30 gButtonCloseClick, Close and Activate Navigation
 
-    Gui, Add, Tab3, x2 y%guiYPosition% h620 w1000 vCurrentTab gTabChanged, XCsoar and LK8000 Controls|Extra LK8000 Controls|LXSim Controls|Mouse / Restart
+    tabYPosition := guiYPosition
+    Gui, Add, Tab3, x2 y%tabYPosition% h650 w720 vCurrentTab gTabChanged, XCsoar/LK8000|Extra LK8000|LXSim|Mouse/Restart
+
+    ; Content inside tabs starts below the tab header
+    contentStartY := tabYPosition + 28
 
     ; Regular Keys Tab
-    Gui, Tab, XCsoar and LK8000 Controls
-    Gui,Font,bold
-    Gui, Add, Text, x10 y%guiYPosition%, Function:
-    Gui, Add, Text, x525 y%guiYPosition%, Current Key/Value:
-    guiYPosition += 20
-    Gui,Font,normal
+    Gui, Tab, XCsoar/LK8000
+    guiYPosition := contentStartY
+
+    ; Column headers
+    Gui, Font, bold
+    Gui, Add, Text, x%col1% y%guiYPosition% w180, Function
+    Gui, Add, Text, x%col2% y%guiYPosition% w150, Key Binding
+    Gui, Add, Text, x%col5% y%guiYPosition% w150, Modifier
+    Gui, Font, normal
+    guiYPosition += 22
 
     for index, commandName in commandList {
-        if (!StrContains(commandName, "Extra_") && !StrContains(commandName, "LXSim_") && commandName != "Toggle_Mouse" && commandName != "Restart_Flight") { 
+        if (!StrContains(commandName, "Extra_") && !StrContains(commandName, "LXSim_") && commandName != "Toggle_Mouse" && commandName != "Restart_Flight") {
             IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-            Gui, Add, Text, x10 y%guiYPosition% w200, %commandName%
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput v%commandName%_xyz, Assign Key/Button
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis v%commandName%_abc, Assign Axis/HAT
-            Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-            guiYPosition += 30
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %commandName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput v%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis v%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier v%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding v%commandName%_clr, Clear
+            guiYPosition += rowHeight
         }
     }
 
     ; Extra Keys Tab
-    Gui, Tab, Extra LK8000 Controls
-    guiYPosition := 65
+    Gui, Tab, Extra LK8000
+    guiYPosition := contentStartY
 
-    Gui,Font,bold
-    Gui, Add, Text, x10 y%guiYPosition%, LK8000 functions (or XCsoar extra keys):
-    Gui, Add, Text, x525 y%guiYPosition%, Current Key/Value:
-    guiYPosition += 20
-    Gui,Font,normal
+    ; Column headers
+    Gui, Font, bold
+    Gui, Add, Text, x%col1% y%guiYPosition% w180, Function
+    Gui, Add, Text, x%col2% y%guiYPosition% w150, Key Binding
+    Gui, Add, Text, x%col5% y%guiYPosition% w150, Modifier
+    Gui, Font, normal
+    guiYPosition += 22
 
     for index, commandName in commandList {
-        if (StrContains(commandName, "Extra_")) {  
+        if (StrContains(commandName, "Extra_")) {
             IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-            Gui, Add, Text, x10 y%guiYPosition% w200, %commandName%
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vextra_%commandName%_xyz, Assign Key/Button
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vextra_%commandName%_abc, Assign Axis/HAT
-            Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-            guiYPosition += 30
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            displayName := StrReplace(commandName, "Extra_LK_", "")
+            displayName := StrReplace(displayName, "_", " ")
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %displayName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vextra_%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vextra_%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vextra_%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vextra_%commandName%_clr, Clear
+            guiYPosition += rowHeight
         }
     }
 
-; LXSim Controls Tab
-Gui, Tab, LXSim Controls
-guiYPosition := 65
+    ; LXSim Controls Tab
+    Gui, Tab, LXSim
+    guiYPosition := contentStartY
 
-Gui,Font,bold
-Gui, Add, Text, x10 y%guiYPosition%, LXSim Device Controls:
-Gui, Add, Text, x525 y%guiYPosition%, Current Key/Value:
-guiYPosition += 20
-Gui,Font,normal
+    ; Column headers
+    Gui, Font, bold
+    Gui, Add, Text, x%col1% y%guiYPosition% w180, Function
+    Gui, Add, Text, x%col2% y%guiYPosition% w150, Key Binding
+    Gui, Add, Text, x%col5% y%guiYPosition% w150, Modifier
+    Gui, Font, normal
+    guiYPosition += 22
 
-; Add groupbox for general actions
-Gui, Add, GroupBox, x10 y%guiYPosition% w650 h100, General Actions
-guiYPosition += 30
+    ; General Actions section
+    Gui, Add, Text, x%col1% y%guiYPosition% w180 cGray, --- General ---
+    guiYPosition += 20
 
-; OK and Cancel buttons
-for index, commandName in commandList {
-    if (commandName = "LXSim_OK" || commandName = "LXSim_Cancel") {
-        friendlyName := StrReplace(commandName, "LXSim_", "")
-        IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-        Gui, Add, Text, x20 y%guiYPosition% w200, %friendlyName%
-        Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vlx_%commandName%_xyz, Assign Key/Button
-        Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vlx_%commandName%_abc, Assign Axis/HAT
-        Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-        guiYPosition += 30
+    for index, commandName in commandList {
+        if (commandName = "LXSim_OK" || commandName = "LXSim_Cancel") {
+            friendlyName := StrReplace(commandName, "LXSim_", "")
+            IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %friendlyName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vlx_%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vlx_%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vlx_%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vlx_%commandName%_clr, Clear
+            guiYPosition += rowHeight
+        }
     }
-}
 
-guiYPosition += 40  ; Increased spacing after General Actions
-; Add groupbox for dials
-Gui, Add, GroupBox, x10 y%guiYPosition% w650 h250, Dial Controls
-guiYPosition += 30  ; Move inside the group box
+    ; Dial Controls section
+    guiYPosition += 8
+    Gui, Add, Text, x%col1% y%guiYPosition% w180 cGray, --- Dials ---
+    guiYPosition += 20
 
-; Top Right Dial
-for index, commandName in commandList {
-    if (StrContains(commandName, "LXSim_Top_Dial_")) {
-        friendlyName := StrReplace(commandName, "LXSim_Top_Dial_", "Top Right Dial - ")
-        IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-        Gui, Add, Text, x20 y%guiYPosition% w200, %friendlyName%
-        Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vlx_%commandName%_xyz, Assign Key/Button
-        Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vlx_%commandName%_abc, Assign Axis/HAT
-        Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-        guiYPosition += 30
+    for index, commandName in commandList {
+        if (StrContains(commandName, "LXSim_Top_Dial_")) {
+            friendlyName := StrReplace(commandName, "LXSim_Top_Dial_", "Top Dial ")
+            IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %friendlyName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vlx_%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vlx_%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vlx_%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vlx_%commandName%_clr, Clear
+            guiYPosition += rowHeight
+        }
     }
-}
 
-    ; Bottom Right Dial
     for index, commandName in commandList {
         if (StrContains(commandName, "LXSim_Bottom_Right_")) {
-            friendlyName := StrReplace(commandName, "LXSim_Bottom_Right_", "Bottom Right Dial  - ")
+            friendlyName := StrReplace(commandName, "LXSim_Bottom_Right_", "Bot R ")
             IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-            Gui, Add, Text, x20 y%guiYPosition% w200, %friendlyName%
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vlx_%commandName%_xyz, Assign Key/Button
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vlx_%commandName%_abc, Assign Axis/HAT
-            Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-            guiYPosition += 30
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %friendlyName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vlx_%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vlx_%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vlx_%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vlx_%commandName%_clr, Clear
+            guiYPosition += rowHeight
         }
     }
 
-    ; Bottom Left Dial
     for index, commandName in commandList {
         if (StrContains(commandName, "LXSim_Bottom_Left_")) {
-            friendlyName := StrReplace(commandName, "LXSim_Bottom_Left_", "Bottom Left Dial - ")
+            friendlyName := StrReplace(commandName, "LXSim_Bottom_Left_", "Bot L ")
             IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-            Gui, Add, Text, x20 y%guiYPosition% w200, %friendlyName%
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vlx_%commandName%_xyz, Assign Key/Button
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vlx_%commandName%_abc, Assign Axis/HAT
-            Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-            guiYPosition += 30
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %friendlyName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vlx_%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vlx_%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vlx_%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vlx_%commandName%_clr, Clear
+            guiYPosition += rowHeight
         }
     }
 
-    ; Add groupbox for buttons
+    ; Button Controls section
+    guiYPosition += 8
+    Gui, Add, Text, x%col1% y%guiYPosition% w300 cGray, --- Buttons (not in Condor) ---
     guiYPosition += 20
-    Gui, Add, GroupBox, x10 y%guiYPosition% w650 h300, Button Controls (not available in Condor)
-    guiYPosition += 30
 
-    ; Top Buttons
     for index, commandName in commandList {
         if (StrContains(commandName, "LXSim_Top_Button_")) {
-            friendlyName := StrReplace(commandName, "LXSim_Top_Button_", "Top Button ")
+            friendlyName := StrReplace(commandName, "LXSim_Top_Button_", "Top Btn ")
             IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-            Gui, Add, Text, x20 y%guiYPosition% w200, %friendlyName%
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vlx_%commandName%_xyz, Assign Key/Button
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vlx_%commandName%_abc, Assign Axis/HAT
-            Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-            guiYPosition += 30
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %friendlyName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vlx_%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vlx_%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vlx_%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vlx_%commandName%_clr, Clear
+            guiYPosition += rowHeight
         }
     }
 
-    ; Bottom Buttons
-    guiYPosition += 10
     for index, commandName in commandList {
         if (StrContains(commandName, "LXSim_Bottom_Button_")) {
-            friendlyName := StrReplace(commandName, "LXSim_Bottom_Button_", "Bottom Button ")
+            friendlyName := StrReplace(commandName, "LXSim_Bottom_Button_", "Bot Btn ")
             IniRead, currentKeyValue, %iniFilePath%, InputBindings, %commandName%, None
-            Gui, Add, Text, x20 y%guiYPosition% w200, %friendlyName%
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vlx_%commandName%_xyz, Assign Key/Button
-            Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vlx_%commandName%_abc, Assign Axis/HAT
-            Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
-            guiYPosition += 30
+            IniRead, currentModifier, %iniFilePath%, Modifiers, %commandName%, None
+            Gui, Add, Text, x%col1% y%guiYPosition% w180, %friendlyName%
+            Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vlx_%commandName%_xyz, Key/Btn
+            Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vlx_%commandName%_abc, Axis/HAT
+            Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+            Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vlx_%commandName%_mod, Modifier
+            Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+            Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vlx_%commandName%_clr, Clear
+            guiYPosition += rowHeight
         }
     }
  
-    Gui, Tab, Mouse / Restart
-    guiYPosition := 65
+    ; Mouse/Restart Tab
+    Gui, Tab, Mouse/Restart
+    guiYPosition := contentStartY
 
-    Gui,Font,bold
-    Gui, Add, Text, x10 y%guiYPosition%, Mouse Control:
-    Gui, Add, Text, x525 y%guiYPosition%, Current Key/Value:
+    ; Column headers
+    Gui, Font, bold
+    Gui, Add, Text, x%col1% y%guiYPosition% w180, Function
+    Gui, Add, Text, x%col2% y%guiYPosition% w150, Key Binding
+    Gui, Add, Text, x%col5% y%guiYPosition% w150, Modifier
+    Gui, Font, normal
+    guiYPosition += 22
+
+    ; Mouse section
+    Gui, Add, Text, x%col1% y%guiYPosition% w180 cGray, --- Mouse ---
     guiYPosition += 20
-    Gui,Font,normal
 
-    ; Add groupbox for mouse control
-    Gui, Add, GroupBox, x10 y%guiYPosition% w650 h100, Mouse Settings
-    guiYPosition += 30
-
-    ; Add Toggle Mouse control with unique variable names
     IniRead, currentKeyValue, %iniFilePath%, InputBindings, Toggle_Mouse, None
-    Gui, Add, Text, x20 y%guiYPosition% w200, Toggle Mouse Cursor
-    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vmouse_Toggle_Mouse_xyz, Assign Key/Button
-    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vmouse_Toggle_Mouse_abc, Assign Axis/HAT
-    Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
+    IniRead, currentModifier, %iniFilePath%, Modifiers, Toggle_Mouse, None
+    Gui, Add, Text, x%col1% y%guiYPosition% w180, Toggle Mouse Cursor
+    Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vmouse_Toggle_Mouse_xyz, Key/Btn
+    Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vmouse_Toggle_Mouse_abc, Axis/HAT
+    Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+    Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vmouse_Toggle_Mouse_mod, Modifier
+    Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+    Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vmouse_Toggle_Mouse_clr, Clear
+    guiYPosition += rowHeight
 
-    ; Add help text
-    guiYPosition += 40
-    Gui, Add, Text, x20 y%guiYPosition% w600, The Toggle Mouse function will switch focus between the XCS/LX/LK app and Condor, allowing mouse control of the app while in the VR cockpit.
-
-    guiYPosition += 150  ; Add some space after mouse controls
-    Gui, Add, GroupBox, x10 y%guiYPosition% w650 h100, Restart Flight Settings
+    ; Help text for mouse
+    guiYPosition += 5
+    Gui, Add, Text, x%col1% y%guiYPosition% w650 cGray, Toggles focus between XCS/LX/LK and Condor for mouse control in VR.
     guiYPosition += 30
 
-    ; Add Restart Flight control
-    IniRead, currentKeyValue, %iniFilePath%, InputBindings, Restart_Flight, None
-    Gui, Add, Text, x20 y%guiYPosition% w200, Restart Flight
-    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignInput vRestart_Flight_xyz, Assign Key/Button
-    Gui, Add, Button, x+5 y%guiYPosition% w100 gAssignAxis vRestart_Flight_abc, Assign Axis/HAT
-    Gui, Add, Text, x+5 y%guiYPosition% w200, %currentKeyValue%
+    ; Restart section
+    Gui, Add, Text, x%col1% y%guiYPosition% w180 cGray, --- Flight ---
+    guiYPosition += 20
 
-    ; Add help text
-    guiYPosition += 40
-    Gui, Add, Text, x20 y%guiYPosition% w600, The Restart Flight function will switch to Condor, press Esc, and click the restart button.
+    IniRead, currentKeyValue, %iniFilePath%, InputBindings, Restart_Flight, None
+    IniRead, currentModifier, %iniFilePath%, Modifiers, Restart_Flight, None
+    Gui, Add, Text, x%col1% y%guiYPosition% w180, Restart Flight
+    Gui, Add, Button, x%col2% y%guiYPosition% w70 h22 gAssignInput vRestart_Flight_xyz, Key/Btn
+    Gui, Add, Button, x%col3% y%guiYPosition% w70 h22 gAssignAxis vRestart_Flight_abc, Axis/HAT
+    Gui, Add, Text, x%col4% y%guiYPosition% w110, %currentKeyValue%
+    Gui, Add, Button, x%col5% y%guiYPosition% w70 h22 gAssignModifier vRestart_Flight_mod, Modifier
+    Gui, Add, Text, x%col6% y%guiYPosition% w90, %currentModifier%
+    Gui, Add, Button, x%col7% y%guiYPosition% w50 h22 gClearBinding vRestart_Flight_clr, Clear
+    guiYPosition += rowHeight
+
+    ; Help text for restart
+    guiYPosition += 5
+    Gui, Add, Text, x%col1% y%guiYPosition% w650 cGray, Switches to Condor, presses Esc, and clicks restart.
 
     Gui, Tab  ; End of tabs
     Gui, Show
@@ -518,39 +678,35 @@ AssignInput() {
 
     ; Process the input
     if (UserInput != "") {
-        ; Check for existing assignments only after we have a new input
+        ; Check for existing assignments by looking at the INI file directly
+        ; This is simpler since hotkey names can have various formats now
         existingCommand := ""
-        
-        ; Check keyboard bindings
-        for key, cmd in hotkeyCommands {
-            if (key = UserInput) {
-                existingCommand := cmd
+        for idx, cmdName in commandList {
+            if (cmdName = selectedCommand) {
+                continue  ; Skip the command we're assigning to
+            }
+            IniRead, existingKey, %iniFilePath%, InputBindings, %cmdName%, None
+            if (existingKey = UserInput) {
+                existingCommand := cmdName
                 break
             }
         }
-        
+
         ; Check joystick bindings if no keyboard binding was found
         if (existingCommand = "") {
             for cmd, binding in joystickBindings {
-                if (binding.axis = UserInput) {
+                if (binding.axis = UserInput && cmd != selectedCommand) {
                     existingCommand := cmd
                     break
                 }
             }
         }
-        
+
         ; If we found an existing binding for this input
-        if (existingCommand != "" && existingCommand != selectedCommand) {
+        if (existingCommand != "") {
             MsgBox, % "Warning: This key/button was previously assigned to " . existingCommand . ". The old binding has been removed."
-            ; Remove old binding
-            if (hotkeyCommands.HasKey(UserInput)) {
-                Hotkey, %UserInput%, Off
-                hotkeyCommands.Delete(UserInput)
-            }
-            if (joystickBindings.HasKey(existingCommand)) {
-                joystickBindings.Delete(existingCommand)
-            }
             IniDelete, %iniFilePath%, InputBindings, %existingCommand%
+            IniDelete, %iniFilePath%, Modifiers, %existingCommand%
         }
 
         ; Now assign the new binding
@@ -675,10 +831,113 @@ AssignAxis() {
 return
 }
 
+AssignModifier() {
+    global iniFilePath, currentTab, JoystickNumber, UserInput
+
+    ; Remove prefix and suffix to get command name
+    selectedCommand := StrReplace(A_GuiControl, "_mod")
+    selectedCommand := StrReplace(selectedCommand, "extra_")
+    selectedCommand := StrReplace(selectedCommand, "lx_")
+    selectedCommand := StrReplace(selectedCommand, "mouse_")
+    selectedCommand := StrReplace(selectedCommand, "Restart_Flight_")
+
+    GuiControl,, %A_GuiControl%, Press Modifier...
+    inputStartTime := A_TickCount
+    UserInput := ""
+
+    Loop
+    {
+        ; Check keyboard keys
+        Loop, 512
+        {
+            keyName := Format("sc{:x}", A_Index)
+            Hotkey, %keyName%, ModifierKeyAssign, On
+        }
+
+        sleep 200
+
+        Loop, 512
+        {
+            keyName := Format("sc{:x}", A_Index)
+            Hotkey, %keyName%, Off
+        }
+
+        if (UserInput != "")
+            Break 1
+
+        ; Check joystick buttons
+        Loop, %JoystickNumber% {
+            joystickId := A_Index
+            Loop, 32
+            {
+                buttonName := joystickId . "Joy" . A_Index
+                if GetKeyState(buttonName, "P") {
+                    UserInput := buttonName
+                    GuiControl,, %A_GuiControl%, Assign Modifier
+                    break 3
+                }
+            }
+        }
+
+        ; Timeout after 5 seconds
+        if (A_TickCount - inputStartTime > 5000) {
+            GuiControl,, %A_GuiControl%, Assign Modifier
+            break
+        }
+        Sleep, 1
+    }
+
+    if (UserInput != "") {
+        IniWrite, %UserInput%, %iniFilePath%, Modifiers, %selectedCommand%
+        tabState := currentTab
+        Gui, Destroy
+        createKeys()
+        gosub, config
+        GuiControl, Choose, CurrentTab, %tabState%
+        return
+    } else {
+        MsgBox, No input was detected within 5 seconds.
+    }
+return
+}
+
+ModifierKeyAssign:
+    scanCode := A_ThisHotkey
+    keyName := GetKeyName(scanCode)
+    UserInput := keyName
+return
+
+ClearBinding() {
+    global iniFilePath, currentTab
+
+    ; Remove prefix and suffix to get command name
+    selectedCommand := StrReplace(A_GuiControl, "_clr")
+    selectedCommand := StrReplace(selectedCommand, "extra_")
+    selectedCommand := StrReplace(selectedCommand, "lx_")
+    selectedCommand := StrReplace(selectedCommand, "mouse_")
+    selectedCommand := StrReplace(selectedCommand, "Restart_Flight_")
+
+    ; Clear both the primary binding and the modifier
+    IniDelete, %iniFilePath%, InputBindings, %selectedCommand%
+    IniDelete, %iniFilePath%, Modifiers, %selectedCommand%
+
+    tabState := currentTab
+    Gui, Destroy
+    createKeys()
+    gosub, config
+    GuiControl, Choose, CurrentTab, %tabState%
+return
+}
+
 joy_check() {
     for commandName, binding in joystickBindings {
         axis := binding.axis
         triggerValue := binding.trigger
+
+        ; Check if non-standard modifier is held (if one is assigned)
+        if (!IsNonStandardModifierHeld(commandName)) {
+            continue  ; Modifier not held, skip this command
+        }
 
         if (InStr(axis, "POV")) {
             ; Handle POV input
