@@ -50,7 +50,7 @@ NumpadAdd::SendToXCS("{F4}") ; Zoom In
 4::SendToXCS("{F10}") ; Task Previous
 
 ; Toggle between XC/LK and Condor to use mouse
-7::SendToXCS("{F10}")
+7::ToggleCondorFocus()
 
 ; Direct arrow keys (in addition to hat default)
 Up::SendToXCS("{Up}")
@@ -112,40 +112,41 @@ SendHatMapping(hatValue, mapping) {
 }
 
 ; Handles piping individual keys to XCSoar
-SendToXCS(keys)
+ToggleCondorFocus()
 {
     static toggleState := 1  ; Static variable to maintain state between function calls
+    toggleState := !toggleState
 
-    if (keys = "{F10}" && (A_ThisHotkey = "7" || A_ThisHotkey = "Numpad7")) {
-        toggleState := !toggleState
-
-        if (toggleState = 1) {
-            if WinExist("ahk_exe CONDOR.EXE") {
-                WinActivate
-            }
-        } else {
-            if WinExist("ahk_exe XCsoar.exe") {
-                WinActivate
-                sleep 200
-                CoordMode, Mouse, Screen
-                WinGetPos, X, Y, W, H, XCSoar
-                Horz := X + (W / 2)
-                Vert := Y + (H / 2)
-                DllCall("SetCursorPos", "int", Horz, "int", Vert)
-                return
-            } else if WinExist("ahk_exe LK8000-PC.exe") {
-                WinActivate
-                sleep 200
-                CoordMode, Mouse, Screen
-                WinGetPos, X, Y, W, H, LK8000
-                Horz := X + (W / 2)
-                Vert := Y + (H / 2)
-                DllCall("SetCursorPos", "int", Horz, "int", Vert)
-                return
-            }
+    if (toggleState = 1) {
+        if WinExist("ahk_exe CONDOR.EXE") {
+            WinActivate
         }
+        return
     }
 
+    if WinExist("ahk_exe XCsoar.exe") {
+        WinActivate
+        sleep 200
+        CoordMode, Mouse, Screen
+        WinGetPos, X, Y, W, H, XCSoar
+        Horz := X + (W / 2)
+        Vert := Y + (H / 2)
+        DllCall("SetCursorPos", "int", Horz, "int", Vert)
+        return
+    } else if WinExist("ahk_exe LK8000-PC.exe") {
+        WinActivate
+        sleep 200
+        CoordMode, Mouse, Screen
+        WinGetPos, X, Y, W, H, LK8000
+        Horz := X + (W / 2)
+        Vert := Y + (H / 2)
+        DllCall("SetCursorPos", "int", Horz, "int", Vert)
+        return
+    }
+}
+
+SendToXCS(keys)
+{
     WinGet, WinID, ID, XCSoar
     ControlGetFocus, CursorPosition, XCSoar
     if not CursorPosition

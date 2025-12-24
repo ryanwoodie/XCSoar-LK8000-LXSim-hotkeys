@@ -236,14 +236,14 @@ event=MacCready down
 mode=default
 type=key
 data=F9
-event=AdjustWaypoint nextarm
+event=AdjustWaypoint next
 event=Beep 1
-event=TaskTransition next
+event=StatusMessage Next Turnpoint
 
 mode=default
 type=key
 data=F10
-event=AdjustWaypoint previousarm
+event=AdjustWaypoint previous
 event=Beep 1
 event=StatusMessage Previous Turnpoint
 
