@@ -721,7 +721,7 @@ AssignInput() {
         MsgBox, No input was detected within 5 seconds.
     }
 return
-}
+} 
 
 KeyAssign:
     scanCode := A_ThisHotkey
